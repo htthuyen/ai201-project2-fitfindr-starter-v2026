@@ -59,24 +59,33 @@
 
 ### `search_listings`
 
-- **What it does:**
-- **Inputs:** <!-- name and type each: `max_price` (float), not "a price" -->
-- **Returns:**
-- **When it has nothing:**
+- **What it does:** The search_listings tool searches the listing files and return the matches
+- **Inputs:** 
+     - description  (str)
+     - size         (str)
+     - max_price    (float)
+
+<!-- name and type each: `max_price` (float), not "a price" -->
+- **Returns:** It returns a list of items that match the given input
+- **When it has nothing:** When no items are matched, it should return a message saying "No items found"
 
 ### `suggest_outfit`
 
-- **What it does:**
-- **Inputs:**
-- **Returns:**
-- **When it has nothing:**
+- **What it does:** It will take a new item and wardrobe and then give outfit suggestions
+- **Inputs:** 
+     - new_item     (dict)
+     - wardrobe     (dict)
+- **Returns:** Return a list of outfit ideas
+- **When it has nothing:** When no outfit ideas are suggested, it should return a message saying "No items go well with the new one."
 
 ### `create_fit_card`
 
-- **What it does:**
+- **What it does:** writes a short caption someone would actualy post
 - **Inputs:**
-- **Returns:**
-- **When it has nothing:**
+     - outfit (dict)
+     - new_item (dict)
+- **Returns:** Return a short paragraph 
+- **When it has nothing:** It should return a short message explaining why no caption fits
 
 ---
 
