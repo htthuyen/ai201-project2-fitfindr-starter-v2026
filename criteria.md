@@ -28,6 +28,9 @@ tool calls and returns a fit card — in at least 4 of 5 tries.
 <!-- Why 4 of 5 and not 5 of 5? Something about your search, probably —
      "my search is a plain keyword match and some phrasings will miss" is a
      real answer. -->
+My search is a plain keyword match, so a query that really does match a listing
+can still miss if the user words it differently. 4 of 5 allows for that one
+miss, but more than one would mean my search or query parsing is broken.
 
 ---
 
@@ -39,6 +42,9 @@ Given a query that matches no listings, the agent stops before calling
 **Why this target:**
 <!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
      about this path? -->
+Stopping on an empty search is a simple check on an empty list with no model
+involved, so it should work the same way every time. One miss means the loop
+called `suggest_outfit` with no item, which is a bug, not bad luck.
 
 ---
 
@@ -54,9 +60,12 @@ Given a query that matches no listings, the agent stops before calling
      compares session["selected_item"] against what actually reached
      suggest_outfit is the shape you're after. -->
 
-
+The item passed to suggest_outfit and to create_fit_card has the same id as session["selected_item"]. That id also appears in session["search_results"] in 5 of 5 runs that reach suggest_outfit
 
 **Why this target:**
+Passing the item from one tool to the next is plain Python with no model in
+between, so the answer should be consistent every time. If the `id` ever
+differs, I'm reading from the wrong place instead of the session, which is a bug.
 
 
 
@@ -75,9 +84,12 @@ Given a query that matches no listings, the agent stops before calling
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
 
-
+Across 5 runs on 5 different items, each fit card is 2–4 sentences and includes the item's actual price and platform. At least 4 of the 5 cards must meet all three conditions.
 
 **Why this target:**
+The card is written by the model, so it may sometimes drop or round the price,
+which is why I don't require 5 of 5. But the price and platform are right there
+in the item I pass in, so missing them more than once means my prompt needs fixing.
 
 
 
@@ -91,10 +103,12 @@ Given a query that matches no listings, the agent stops before calling
      wardrobe path, what happens when the model can't be reached, whether the
      search respects a price ceiling — anything, as long as it names a number
      or an observable outcome. -->
-
-
+For 5 queries that include a max price (e.g. "under $30"), every listing in session["search_results"] has price <= max_price, in 5 of 5 runs.
 
 **Why this target:**
+The price filter is a simple number comparison in my own code, so it should never
+let an over-budget item through. One wrong result would make the search feel
+untrustworthy and would most likely mean I read the price out of the query wrong.
 
 
 
