@@ -59,24 +59,23 @@
 
 ### `search_listings`
 
-- **What it does:** The search_listings tool searches the listing files and return the matches
+- **What it does:** The search_listings tool searches the listing files and return items matching a description
 - **Inputs:** 
      - description  (str)
      - size         (str)
      - max_price    (float)
 
 <!-- name and type each: `max_price` (float), not "a price" -->
-- **Returns:** It returns a list of items that match the given input
-- **When it has nothing:** When no items are matched, it should return a message saying "No items found"
-
+- **Returns:** It returns a list of items that match the given description input. The best match will be return first.
+- **When it has nothing:** When no items are matched, it returns an empty list
 ### `suggest_outfit`
 
-- **What it does:** It will take a new item and wardrobe and then give outfit suggestions
+- **What it does:** It will take a thrifted item and the user's wardrobe and then give one or two outfit suggestions
 - **Inputs:** 
-     - new_item     (dict)
+     - new_item     (listing dict)
      - wardrobe     (dict)
-- **Returns:** Return a list of outfit ideas
-- **When it has nothing:** When no outfit ideas are suggested, it should return a message saying "No items go well with the new one."
+- **Returns:** Return a non-empty string with outfit suggestions.
+- **When it has nothing:** When no outfit ideas are suggested, it returns a general styling advice
 
 ### `create_fit_card`
 
@@ -84,9 +83,8 @@
 - **Inputs:**
      - outfit (dict)
      - new_item (dict)
-- **Returns:** Return a short paragraph 
-- **When it has nothing:** It should return a short message explaining why no caption fits
-
+- **Returns:** It returns a 2-4 sentence caption
+- **When it has nothing:** If `outfit` is empty or whitespace, return a descriptive message 
 ---
 
 ## Planning Loop
@@ -132,15 +130,27 @@ $ python app.py ask '...'
 $ python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
 
 ```
+```
+[{'id': 'lst_002', 'title': 'Y2K Baby Tee — Butterfly Print', 'description': 'Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.', 'category': 'tops', 'style_tags': ['y2k', 'vintage', 'graphic tee', 'cottagecore'], 'size': 'S/M', 'condition': 'excellent', 'price': 18.0, 'colors': ['white', 'pink', 'purple'], 'brand': None, 'platform': 'depop'},{'id': 'lst_006', 'title': 'Graphic Tee — 2003 Tour Bootleg Style', 'description': 'Vintage-style bootleg tee with faded graphic. Slightly boxy fit. 100% cotton, soft and worn-in.', 'category': 'tops', 'style_tags': ['graphic tee', 'vintage', 'grunge', 'streetwear', 'band tee'], 'size': 'L', 'condition': 'good', 'price': 24.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_033', 'title': 'Vintage Band Tee — Faded Grey', 'description': 'Faded grey band-style tee with distressed graphic. Crew neck. Fits boxy. Well-loved but no holes or major damage.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'band tee', 'graphic tee', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 19.0, 'colors': ['grey', 'charcoal'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_011', 'title': 'Low-Rise Cargo Pants — Khaki', 'description': 'Y2K era low-rise cargo pants. Lots of pockets. Khaki color, slightly distressed at the hems. Great for layering with a long tee.', 'category': 'bottoms', 'style_tags': ['y2k', 'cargo', '2000s', 'streetwear'], 'size': 'W29', 'condition': 'fair', 'price': 27.0, 'colors': ['khaki', 'tan'], 'brand': None, 'platform': 'poshmark'}, {'id': 'lst_015', 'title': 'Vintage Graphic Hoodie — Faded Black', 'description': 'Faded black pullover hoodie with barely-visible vintage graphic on the chest. Cozy interior. Some pilling but adds to the worn-in look.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'graphic', 'streetwear'], 'size': 'L', 'condition':'fair', 'price': 26.0, 'colors': ['black', 'charcoal'], 'brand': None, 'platform': 'depop'}]
+```
 
 ```
 $ python -c "from tools import suggest_outfit; ..."
 
 ```
+```
+**Off-Duty Prep**
+Pair the Vintage Levi's 501 Jeans with the white ribbed tank top and the oversized grey crewneck sweatshirt layered over your shoulders, finished with chunky white sneakers and the black crossbody bag. 
 
+**Denim on Denim**
+Style the Vintage Levi's 501 Jeans w
+```
 ```
 $ python -c "from tools import create_fit_card; ..."
 
+```
+```
+Scored these Vintage Levi's 501 Jeans online and I'm honestly obsessed with how the medium wash breaks in. Paired them with crisp white sneakers for that effortlessly cool, running-errands-in-the-city streetwear aesthetic. Nothing beats finding classic denim that actually fits like a glove right out of the package.
 ```
 
 ---
@@ -156,15 +166,15 @@ $ python -c "from tools import create_fit_card; ..."
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I asked Claude to check whether my search_listings returned an empty list.
+- *What came back:* It confirmed every no-match case returned an empty list, but it also pointed out that my scoring only used the description field and didn't strip punctuation from the user's query, so "tee," would not match "tee".
+- *What I changed:* I kept the description-only matching on purpose because that was my spec, and had the query cleaned the same way as the listing text so punctuated searches return the same results as plain ones.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I asked Claude to guide me through suggest_outfit step by step and check my code as I wrote it instead of handing me the full solution.
+- *What came back:* Its review caught that I was calling ", ".join() on a wardrobe item's category, which is a string, so the prompt would have listed "b, o, t, t, o, m, s" instead of "bottoms".
+- *What I changed:* I removed the join and used the category string directly, and kept the final prompt's rule that the model may only name pieces from my wardrobe list so it can't invent clothes I don't own.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
