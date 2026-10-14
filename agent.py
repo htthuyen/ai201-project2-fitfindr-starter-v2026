@@ -109,6 +109,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         than a stack trace. The import is already at the top of this file.
     """
     session = new_session(query, wardrobe)
+    trace.start_trace()
     searched = False
     count = 0
 
@@ -119,6 +120,8 @@ def run_agent(query: str, wardrobe: dict) -> dict:
 
         if not session["parsed"]:
             session["parsed"] = parse_query(query)
+            trace.step("parse_query", inputs=repr(query),
+                       returned=str(session["parsed"]))
 
         elif not searched:
             parsed = session["parsed"]
@@ -131,20 +134,39 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             # the branch: nothing to style, so stop before suggest_outfit
             if not session["search_results"]:
                 session["error"] = _no_results_message(parsed)
+                trace.step("search_listings (via MCP)", inputs=str(parsed),
+                           returned=session["search_results"],
+                           note="branch: empty, stopping before suggest_outfit")
                 return session
+
+            trace.step("search_listings (via MCP)", inputs=str(parsed),
+                       returned=session["search_results"],
+                       note="branch: results found, continuing")
 
         elif session["selected_item"] is None:
             session["selected_item"] = session["search_results"][0]
+            trace.step("select_item",
+                       inputs=f"{len(session['search_results'])} results",
+                       returned=session["selected_item"],
+                       note="took the top-ranked result")
 
         elif session["outfit_suggestion"] is None:
             session["outfit_suggestion"] = suggest_outfit(
                 session["selected_item"], session["wardrobe"]
             )
+            trace.step("suggest_outfit",
+                       inputs=f"item={session['selected_item']['title']!r}, "
+                              f"wardrobe_items={len((session['wardrobe'] or {}).get('items', []))}",
+                       returned=session["outfit_suggestion"])
 
         elif session["fit_card"] is None:
             session["fit_card"] = create_fit_card(
                 session["outfit_suggestion"], session["selected_item"]
             )
+            trace.step("create_fit_card",
+                       inputs=f"item={session['selected_item']['title']!r}, "
+                              f"outfit={session['outfit_suggestion']!r}",
+                       returned=session["fit_card"])
 
         else:
             return session
