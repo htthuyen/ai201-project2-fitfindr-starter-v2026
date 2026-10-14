@@ -234,7 +234,7 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
 
     prompt = (
         f"I just thrifted this: {new_item['title']} "
-        f"(${new_item['price']} on {new_item['platform']}, "
+        f"(${new_item['price']:.0f} on {new_item['platform']}, "
         f"condition: {new_item['condition']}, "
         f"style: {', '.join(new_item['style_tags'])}).\n\n"
         f"Here's how I'm styling it:\n{outfit.strip()}\n\n"
@@ -244,15 +244,16 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
     system = (
         "You write captions for thrift-haul outfit posts. Write two to four "
         "sentences in a casual first-person voice, like a real post, not a "
-        "product description. Mention the itetform "
-        "exactly once each. Be specific about the vibe of the outfit. "
+        "product description. Mention the item, its exact price (like $24), "
+        "and the platform it came from exactly once each. Be specific about "
+        "the vibe of the outfit. "
         "No hashtag lists."
     )
 
     response = generate(prompt, system=system)
     if not response or not response.strip():
         return (
-            f"Just thrifted the {new_item['tiice']} "
+            f"Just thrifted the {new_item['title']} for ${new_item['price']:.0f} "
             f"on {new_item['platform']}. Styling it up this week."
         )
     return response.strip()
