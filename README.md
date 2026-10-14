@@ -41,6 +41,8 @@
 
 <!-- Three or four sentences: what a user asks for, and what they get back. -->
 
+FitFindr helps you shop secondhand by turning a plain request like "vintage graphic tee under $30" into a short list of matching thrift listings, filtered by size and price when you give them. It picks the best match and suggests one or two outfits built from clothes you already own, or general styling ideas if your wardrobe is empty. Finally, it writes a short, casual caption you could post with a photo of the fit, naming the item, its price, and where you found it. If nothing matches your search, it tells you so instead of making up an item.
+
 
 
 ---
@@ -100,13 +102,13 @@
      The grader checks your code against what you claim here, so the file and
      function have to be real. -->
 
-**Branch rule:**
+**Branch rule:** If search_listings returns an empty list, I put a message in `session["error"]` saying what to change (budget, size, or wording) and stop. Otherwise I take the first result and go to suggest_outfit.
 
 **Where it lives:** `agent.py::run_agent`
 
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
+**How the query is parsed:** Regex in `parse_query()`: a dollar amount becomes max_price, "size X" becomes size, and the remaining words minus filler become the description.
 
-**What moves through the session:** <!-- which fields, in what order -->
+**What moves through the session:** `parsed` → `search_results` → `selected_item` → `outfit_suggestion` → `fit_card`, with `error` set instead if the search comes back empty.
 
 ---
 
@@ -120,8 +122,21 @@
 **One full query**
 
 ```
-$ python app.py ask '...'
+$ python app.py ask 'vintage graphic tee under $30'
 
+```
+
+```
+
+  Found:    Graphic Tee — 2003 Tour Bootleg Style — $24.0 on depop
+
+  Outfit:   **Outfit 1: 90s Grunge Casual**
+Pair the Graphic Tee — 2003 Tour Bootleg Style with your Baggy straight-leg jeans, dark wash, and finish with Black combat boots. 
+
+**Outfit 2: Streetwear Layering**
+Wear the Graphic Tee — 2003 Tour Bootleg Style layered under the Vintage black denim jacket, paired with the Wide-leg khaki trousers andChunky white sneakers.
+
+  Fit card: Scored this sick Graphic Tee — 2003 Tour Bootleg Style online and I’m honestly obsessed. I threw it on with baggy dark wash denim and chunky boots for that effortless 90s grunge look. It has the absolute best worn-in feel for everyday streetwear.
 ```
 
 **The three tools, tested one at a time**
@@ -135,7 +150,7 @@ $ python -c "from tools import search_listings; print(search_listings('graphic t
 ```
 
 ```
-$ python -c "from tools import suggest_outfit; ..."
+$    python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
 
 ```
 ```
@@ -146,7 +161,8 @@ Pair the Vintage Levi's 501 Jeans with the white ribbed tank top and the oversiz
 Style the Vintage Levi's 501 Jeans w
 ```
 ```
-$ python -c "from tools import create_fit_card; ..."
+$ python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
+
 
 ```
 ```

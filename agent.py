@@ -13,6 +13,8 @@ Build and test your three tools in `tools.py` first. Then come here.
     python agent.py          runs both example paths below
 """
 
+import re
+
 import config
 import trace
 from tools import search_listings, suggest_outfit, create_fit_card
@@ -106,10 +108,98 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         than a stack trace. The import is already at the top of this file.
     """
     session = new_session(query, wardrobe)
+    searched = False
+    count = 0
 
-    # TODO: delete these two lines and build the loop.
-    session["error"] = "The planning loop isn't built yet — see the TODO in agent.py."
-    return session
+    # each pass looks at the session and picks the next step from what's missing
+    while True:
+        count += 1
+        trace.check_iterations(count)
+
+        if not session["parsed"]:
+            session["parsed"] = parse_query(query)
+
+        elif not searched:
+            parsed = session["parsed"]
+            session["search_results"] = search_listings(
+                parsed["description"], parsed["size"], parsed["max_price"]
+            )
+            searched = True
+
+            # the branch: nothing to style, so stop before suggest_outfit
+            if not session["search_results"]:
+                session["error"] = _no_results_message(parsed)
+                return session
+
+        elif session["selected_item"] is None:
+            session["selected_item"] = session["search_results"][0]
+
+        elif session["outfit_suggestion"] is None:
+            session["outfit_suggestion"] = suggest_outfit(
+                session["selected_item"], session["wardrobe"]
+            )
+
+        elif session["fit_card"] is None:
+            session["fit_card"] = create_fit_card(
+                session["outfit_suggestion"], session["selected_item"]
+            )
+
+        else:
+            return session
+
+
+# ── query parsing ─────────────────────────────────────────────────────────────
+
+# words that say nothing about the item, dropped so they don't score as matches
+_FILLER = {
+    "a", "an", "the", "i", "im", "i'm", "me", "my", "for", "some", "something",
+    "looking", "want", "need", "find", "please", "show", "under", "below",
+    "less", "than", "max", "size", "in", "with", "and", "or", "to",
+}
+
+
+def parse_query(query: str) -> dict:
+    """
+    Pull a description, a size, and a max_price out of a plain-language query
+    with regex. Size and max_price are None when the query doesn't give them.
+    """
+    text = query.lower()
+
+    max_price = None
+    price_match = re.search(
+        r"(?:under|below|less than|max|up to)?\s*\$\s*(\d+(?:\.\d+)?)", text
+    )
+    if price_match:
+        max_price = float(price_match.group(1))
+        text = text.replace(price_match.group(0), " ")
+
+    size = None
+    size_match = re.search(
+        r"\bsize\s+(us\s*\d+(?:\.\d+)?|w\d+(?:\s*l\d+)?|one size|[a-z]{1,4}(?:/[a-z]{1,4})?)\b",
+        text,
+    )
+    if size_match:
+        size = size_match.group(1).upper()
+        text = text.replace(size_match.group(0), " ")
+
+    words = re.findall(r"[a-z0-9'-]+", text)
+    description = " ".join(w for w in words if w not in _FILLER)
+
+    return {"description": description, "size": size, "max_price": max_price}
+
+
+def _no_results_message(parsed: dict) -> str:
+    """Say what the user could change, based on which filters they used."""
+    tips = []
+    if parsed["max_price"] is not None:
+        tips.append(f"raise your budget above ${parsed['max_price']:.0f}")
+    if parsed["size"]:
+        tips.append(f"try a size other than {parsed['size']} or leave size out")
+    tips.append("use broader words, like 'tee' or 'jacket' instead of a specific style")
+    return (
+        f"Nothing matched \"{parsed['description']}\". You could "
+        + ", or ".join(tips) + "."
+    )
 
 
 # ── running it directly ───────────────────────────────────────────────────────
