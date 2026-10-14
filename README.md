@@ -569,7 +569,7 @@ full. -->
 | 3. Selected item reaches suggest_outfit and create_fit_card unchanged | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 | 4. Fit card is 2–4 sentences with the real price and platform | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 | 5. Every search result is at or under max_price | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
-
+```
  query: vintage graphic tee under $30
 [1] parse_query
       in:  'vintage graphic tee under $30'
@@ -799,7 +799,7 @@ empty wardrobe  (empty wardrobe)
       in:  item='Denim Jacket — Light Wash, Cropped', outfit='**1. Double Denim Streetwear**\nPair the cropped jacket wit…
       out: I am completely obsessed with this light wash cropped denim jacket I just scored on Poshmark for $42. I paired…
   try 5: completed — fit card 313 chars
-
+```
 **Did it help, and how do I know:** Yes, criterion 4 went from 0/5 to 5/5, because every fit card in the after-run says "$24 on depop" in three sentences, and the other four criteria stayed at 5/5, so the fix didn't break anything else.
 
 <!-- If it made things worse, say that. Honestly reported, that earns full
